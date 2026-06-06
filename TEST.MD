@@ -1,46 +1,48 @@
-# 測試文件 (Testing Documentation)
+# 自動化測試說明 (Automated Testing Report)
 
-本文件說明專案中自動化測試的配置、檔案位置以及測試邏輯。
+本文件詳述了針對 `AiTodoStarter` 系統核心邏輯所撰寫的自動化測試案例。
 
-## 1. 測試檔案位置
-`app/src/test/java/tw/edu/example/aitodostarter/ui/TodoControllerTest.kt`
+### 1. 測試環境 (Testing Environment)
+- **測試框架**：JUnit 4
+- **受測對象**：`TodoController` (邏輯層)
+- **模擬組件**：`FakeTodoRepository` (模擬資料存取)
 
-## 2. 測試架構說明
-測試採用 JUnit 4 框架，並透過自定義的 `FakeTodoRepository` 來模擬資料儲存層。這使得測試不需要依賴真實的 Room 資料庫或 Android 環境，能夠在 JVM 上快速執行。
+### 2. 測試案例清單 (Test Cases)
 
-### 模擬類別：FakeTodoRepository
-實作 `TodoRepository` 介面，使用內建的 `MutableList` 儲存測試資料，支援：
-- `getTodos()`: 獲取清單。
-- `addTodo(title)`: 新增項目。
-- `toggleTodo(id)`: 切換完成狀態。
-- `deleteTodo(id)`: 刪除項目。
+#### 代辦事項基礎操作 (Requirement 3)
+- **`addTodo_withNonBlankInput_addsTodoAndClearsInput`**
+    - **內容**：新增一筆非空白事項。
+    - **預期**：輸入框清空，且事項出現在清單中。
+- **`toggleTodo_toDoneAndThenToUndone_worksCorrectly`**
+    - **內容**：將事項標記為 Done 後再標記為 Undone。
+    - **預期**：成功切換狀態並通過斷言驗證。
+- **`deleteTodo_afterMarkingDone_removesItem`**
+    - **內容**：新增事項，標記完成後執行刪除。
+    - **預期**：該事項完全從清單中移除。
+- **`deleteTodo_withMultipleItems_onlyRemovesTargetItem`**
+    - **內容**：在有多筆事項的情況下刪除其中一筆。
+    - **預期**：僅選定項目消失，其餘項目保留。
 
-## 3. 測試案例 (Test Cases)
+#### 搜尋與篩選功能 (Requirement 4)
+- **`search_withQuery_filtersList`**
+    - **內容**：輸入特定關鍵字並按下 Search。
+    - **預期**：清單僅顯示標題相符的項目。
+- **`search_withBlankQuery_showsAll`**
+    - **內容**：清空搜尋欄並按下 Search。
+    - **預期**：清單恢復顯示所有資料。
+- **`search_isCaseInsensitive`**
+    - **內容**：使用不同的大小寫進行搜尋。
+    - **預期**：搜尋結果不受字母大小寫影響。
 
-### A. 新增項目測試 (`addTodo_withNonBlankInput_addsTodoAndClearsInput`)
-- **動作**：輸入非空白文字並執行新增。
-- **驗證**：輸入框應被清空，且待辦清單中應包含該項目。
+#### 緊急事項功能驗證 (Urgent Feature)
+- **`addTodo_asUrgent_appearsInFilteredList`**
+    - **內容**：新增一筆標記為「緊急」的事項。
+    - **預期**：資料模型中的 `isUrgent` 屬性為 `true`。
+- **`setShowUrgentOnly_filtersListCorrectly`**
+    - **內容**：切換至「僅顯示緊急事項」模式。
+    - **預期**：清單只出現標記為緊急的項目，過濾掉一般事項。
 
-### B. 狀態切換邏輯測試 (`toggleTodo_toDoneAndThenToUndone_worksCorrectly`)
-- **動作**：新增項目 -> 執行切換 (Toggle) -> 再次執行切換。
-- **驗證**：
-  1. 第一次切換後，項目狀態應為 `isDone = true`。
-  2. 第二次切換後，項目狀態應回到 `isDone = false`。
-
-### C. 刪除功能測試 (`deleteTodo_afterMarkingDone_removesItem`)
-- **動作**：新增項目 -> 標記完成 -> 執行刪除。
-- **驗證**：該項目應從 `controller.state.todos` 清單中完全移除。
-
-### D. 多項目隔離刪除測試 (`deleteTodo_withMultipleItems_onlyRemovesTargetItem`)
-- **動作**：在擁有多個項目的清單中，指定刪除其中一個 ID。
-- **驗證**：
-  1. 清單總數應減 1。
-  2. 目標 ID 的項目應不存在。
-  3. 非目標 ID 的項目應繼續保留在清單中。
-
-## 4. 如何執行測試
-在 Android Studio 中，您可以對著 `TodoControllerTest` 類別按右鍵，選擇 **"Run 'TodoControllerTest'"**。
-或是在終端機執行：
-```bash
-./gradlew :app:testDebugUnitTest
-```
+### 3. 如何執行測試
+1. 在 Android Studio 中開啟 `TodoControllerTest.kt`。
+2. 點擊類別名稱旁的 **Run** 圖示執行所有測試。
+3. 觀察 **Run 視窗** 確認所有綠色勾選皆已通過。

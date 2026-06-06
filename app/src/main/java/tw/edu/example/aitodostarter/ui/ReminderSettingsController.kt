@@ -18,9 +18,21 @@ class ReminderSettingsController(
         private set
 
     fun updateReminderTime(hour: Int, minute: Int) {
-        val settings = ReminderSettings(hour = hour, minute = minute)
+        val settings = state.settings.copy(hour = hour, minute = minute)
         repository.saveSettings(settings)
         scheduler.scheduleDailyReminder(settings)
+        state = state.copy(settings = settings)
+    }
+
+    fun toggleDarkMode() {
+        val settings = state.settings.copy(isDarkMode = !state.settings.isDarkMode)
+        repository.saveSettings(settings)
+        state = state.copy(settings = settings)
+    }
+
+    fun updatePrimaryColor(colorArgb: Int) {
+        val settings = state.settings.copy(primaryColorArgb = colorArgb)
+        repository.saveSettings(settings)
         state = state.copy(settings = settings)
     }
 
