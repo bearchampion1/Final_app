@@ -35,5 +35,10 @@ class TodoController(
         state = state.copy(todos = repository.getTodos())
     }
 
+    fun deleteTodo(id: Int) {
+        repository.deleteTodo(id)
+        state = state.copy(todos = repository.getTodos())
+    }
+
     fun activeCount(): Int = state.todos.count { !it.isDone }
 }

@@ -6,8 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import tw.edu.example.aitodostarter.data.InMemoryTodoRepository
+import tw.edu.example.aitodostarter.data.RoomTodoRepository
 import tw.edu.example.aitodostarter.data.SharedPreferencesReminderSettingsRepository
+import tw.edu.example.aitodostarter.data.TodoDatabase
 import tw.edu.example.aitodostarter.reminder.ReminderScheduler
 import tw.edu.example.aitodostarter.ui.ReminderSettingsController
 import tw.edu.example.aitodostarter.ui.TodoApp
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val todoController = TodoController(InMemoryTodoRepository())
+        val database = TodoDatabase.getDatabase(applicationContext)
+        val todoController = TodoController(RoomTodoRepository(database.todoDao()))
         val reminderScheduler = ReminderScheduler(applicationContext)
         val reminderSettingsController = ReminderSettingsController(
             repository = SharedPreferencesReminderSettingsRepository(applicationContext),

@@ -13,13 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,10 +39,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tw.edu.example.aitodostarter.data.InMemoryTodoRepository
 import tw.edu.example.aitodostarter.data.ReminderSettings
 import tw.edu.example.aitodostarter.data.ReminderSettingsRepository
 import tw.edu.example.aitodostarter.data.TodoItem
+import tw.edu.example.aitodostarter.data.TodoRepository
 import tw.edu.example.aitodostarter.reminder.ReminderScheduler
 
 enum class AppPage {
@@ -105,6 +105,10 @@ fun TodoApp(
                                 todoController.toggleTodo(it)
                                 todoState = todoController.state
                             },
+                            onDeleteClick = {
+                                todoController.deleteTodo(it)
+                                todoState = todoController.state
+                            },
                         )
 
                         AppPage.Settings -> ReminderSettingsScreen(
@@ -143,7 +147,7 @@ fun SettingsTopAppBar(onBackClick: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back to todo list",
                 )
             }
@@ -158,6 +162,7 @@ fun TodoScreen(
     onInputChange: (String) -> Unit,
     onAddClick: () -> Unit,
     onToggleClick: (Int) -> Unit,
+    onDeleteClick: (Int) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -185,7 +190,7 @@ fun TodoScreen(
             }
         }
 
-        Divider()
+        HorizontalDivider()
 
         if (state.todos.isEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -198,6 +203,7 @@ fun TodoScreen(
                     TodoRow(
                         todo = todo,
                         onToggleClick = onToggleClick,
+                        onDeleteClick = onDeleteClick,
                     )
                 }
             }
@@ -270,6 +276,7 @@ fun ReminderSettingsScreen(
 fun TodoRow(
     todo: TodoItem,
     onToggleClick: (Int) -> Unit,
+    onDeleteClick: (Int) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -285,6 +292,7 @@ fun TodoRow(
             isDone = todo.isDone,
             onDoneClick = { onToggleClick(todo.id) },
             onUndoneClick = { onToggleClick(todo.id) },
+            onDeleteClick = { onDeleteClick(todo.id) },
         )
     }
 }
@@ -294,6 +302,7 @@ fun TodoItemMenu(
     isDone: Boolean,
     onDoneClick: () -> Unit,
     onUndoneClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -324,6 +333,13 @@ fun TodoItemMenu(
                 },
             )
         }
+        DropdownMenuItem(
+            text = { Text("Delete") },
+            onClick = {
+                expanded = false
+                onDeleteClick()
+            },
+        )
     }
 }
 
@@ -331,12 +347,23 @@ fun TodoItemMenu(
 @Composable
 private fun TodoScreenPreview() {
     TodoApp(
-        todoController = TodoController(InMemoryTodoRepository()),
+        todoController = TodoController(PreviewTodoRepository()),
         reminderSettingsController = ReminderSettingsController(
             repository = PreviewReminderSettingsRepository(),
             scheduler = ReminderScheduler(LocalContext.current),
         ),
     )
+}
+
+private class PreviewTodoRepository : TodoRepository {
+    override fun getTodos(): List<TodoItem> = listOf(
+        TodoItem(id = 1, title = "Read the starter code"),
+        TodoItem(id = 2, title = "Ask AI to generate SPEC.md"),
+        TodoItem(id = 3, title = "Demo one maintenance request"),
+    )
+    override fun addTodo(title: String): TodoItem = TodoItem(id = 4, title = title)
+    override fun toggleTodo(id: Int) {}
+    override fun deleteTodo(id: Int) {}
 }
 
 private class PreviewReminderSettingsRepository : ReminderSettingsRepository {
