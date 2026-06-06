@@ -44,6 +44,7 @@ class TodoControllerTest {
 
         assertEquals("", controller.state.inputText)
         assertTrue(controller.state.todos.any { it.title == "Prepare final demo" })
+        assertTrue(controller.state.filteredTodos.any { it.title == "Prepare final demo" })
     }
 
     @Test
@@ -88,5 +89,34 @@ class TodoControllerTest {
         assertEquals(initialSize - 1, controller.state.todos.size)
         assertFalse(controller.state.todos.any { it.id == firstTodoId })
         assertTrue(controller.state.todos.any { it.id == secondTodoId })
+    }
+
+    @Test
+    fun search_withQuery_filtersList() {
+        val controller = TodoController(FakeTodoRepository())
+        controller.updateInput("Task 1")
+        controller.search()
+
+        assertEquals(1, controller.state.filteredTodos.size)
+        assertEquals("Task 1", controller.state.filteredTodos[0].title)
+    }
+
+    @Test
+    fun search_withBlankQuery_showsAll() {
+        val controller = TodoController(FakeTodoRepository())
+        controller.updateInput("")
+        controller.search()
+
+        assertEquals(2, controller.state.filteredTodos.size)
+    }
+
+    @Test
+    fun search_isCaseInsensitive() {
+        val controller = TodoController(FakeTodoRepository())
+        controller.updateInput("task 2")
+        controller.search()
+
+        assertEquals(1, controller.state.filteredTodos.size)
+        assertEquals("Task 2", controller.state.filteredTodos[0].title)
     }
 }

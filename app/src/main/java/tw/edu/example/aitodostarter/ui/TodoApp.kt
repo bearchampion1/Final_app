@@ -14,11 +14,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +78,16 @@ fun TodoApp(
                     )
                 }
             },
+            floatingActionButton = {
+                if (page == AppPage.Todos) {
+                    FloatingActionButton(onClick = {
+                        todoController.addTodo()
+                        todoState = todoController.state
+                    }) {
+                        Icon(Icons.Filled.Add, contentDescription = "Add todo")
+                    }
+                }
+            }
         ) { innerPadding ->
             Surface(
                 modifier = Modifier
@@ -97,8 +109,8 @@ fun TodoApp(
                                 todoController.updateInput(it)
                                 todoState = todoController.state
                             },
-                            onAddClick = {
-                                todoController.addTodo()
+                            onSearchClick = {
+                                todoController.search()
                                 todoState = todoController.state
                             },
                             onToggleClick = {
@@ -160,7 +172,7 @@ fun TodoScreen(
     state: TodoUiState,
     activeCount: Int,
     onInputChange: (String) -> Unit,
-    onAddClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onToggleClick: (Int) -> Unit,
     onDeleteClick: (Int) -> Unit,
 ) {
@@ -182,24 +194,24 @@ fun TodoScreen(
                 modifier = Modifier.weight(1f),
                 value = state.inputText,
                 onValueChange = onInputChange,
-                label = { Text("New todo") },
+                label = { Text("New todo or search") },
                 singleLine = true,
             )
-            Button(onClick = onAddClick) {
-                Text("Add")
+            Button(onClick = onSearchClick) {
+                Text("Search")
             }
         }
 
         HorizontalDivider()
 
-        if (state.todos.isEmpty()) {
+        if (state.filteredTodos.isEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-            Text("No todos yet")
+            Text(if (state.searchQuery.isBlank()) "No todos yet" else "No matching todos")
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(state.todos, key = { it.id }) { todo ->
+                items(state.filteredTodos, key = { it.id }) { todo ->
                     TodoRow(
                         todo = todo,
                         onToggleClick = onToggleClick,
